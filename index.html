@@ -1055,7 +1055,7 @@ nav{background:linear-gradient(var(--hair),var(--hair)) 0 0/100% 1px no-repeat,l
 
 <div class="sheet" id="cs"><div class="pn" role="dialog" aria-label="Tu pedido">
 <div class="ph2"><img class="bm" alt=""><div><h2>Tu pedido</h2><small>Revisa y envía por WhatsApp</small></div></div><div id="lines"></div><div class="tot" id="tot"></div>
-<label for="nm">Nombre</label><input id="nm" autocomplete="name">
+<label for="sd">Sede de Budapest</label><select id="sd" aria-required="true"><option value="">Selecciona la sede donde estés</option><option value="Pinto Salinas">Pinto Salinas</option><option value="Av. Alí Primera">Av. Alí Primera</option><option value="C.C. Traki Coro">C.C. Traki Coro</option></select><p class="note" id="sdh" style="margin:6px 0 0" hidden></p><label for="nm">Nombre</label><input id="nm" autocomplete="name">
 <label for="ph">Teléfono de contacto</label><input id="ph" type="tel" autocomplete="tel" placeholder="0424 000 0000">
 <label for="dl">Entrega</label><select id="dl"><option value="mesa">En una mesa del local</option><option value="retiro">Retiro en tienda</option></select>
 <label for="ex" id="exl">Número de mesa</label><input id="ex">
@@ -1331,6 +1331,7 @@ const del=cart[k].q+s<=0,ac=bt.closest(".acts"),row=ac?ac.previousElementSibling
 if(del&&row){snd("del");bt.disabled=true;row.classList.add("rm");const n=row.nextElementSibling;if(n&&n.classList.contains("acts"))n.classList.add("rm");setTimeout(fin,340)}else{snd("tap");fin()}};
 const openC=()=>{lines();payUI();$("cs").classList.add("on");const L=$("lines");L.classList.add("stg");setTimeout(()=>L.classList.remove("stg"),1000)};$("open").onclick=$("open2").onclick=openC;$("cl").onclick=()=>$("cs").classList.remove("on");
 $("vc").onclick=()=>{cart={};draw();lines();$("cs").classList.remove("on")};
+const SEDES={"Pinto Salinas":"8:30 AM – 11:30 PM","Av. Alí Primera":"8:30 AM – 11:00 PM","C.C. Traki Coro":"8:30 AM – 8:00 PM"};$("sd").onchange=()=>{const h=SEDES[$("sd").value],el=$("sdh");el.hidden=!h;el.textContent=h?"Horario: "+h:"";if(/sede/i.test($("er").textContent))$("er").textContent=""};
 $("dl").onchange=()=>{const d=$("dl").value;$("exl").textContent=d=="mesa"?"Número de mesa":d=="retiro"?"Nombre de quien retira":"Dirección y referencia";$("ex").value=""};
 [$("cs"),$("ms"),$("as"),$("ps"),$("ls")].forEach(s=>s.onclick=e=>{if(e.target===s){s.classList.remove("on");if(s.id=="as")list()}});
 
@@ -1352,12 +1353,13 @@ function gate(){const need=$("py").value!="Efectivo USD"&&!PAYIMG,b=$("send");b.
 const _pu=payUI;payUI=function(){_pu();gate()};
 $("open").addEventListener("click",()=>payUI());$("open2").addEventListener("click",()=>payUI());try{payUI()}catch(e){}
 $("cs").onchange=e=>{const f=e.target.id=="pcap"&&e.target.files[0];if(!f)return;if(!/^image\//.test(f.type)||f.size>15e6){$("pcs").textContent="Adjunta una imagen de hasta 15 MB.";e.target.value="";return}const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=im.width*k;c.height=im.height*k;c.getContext("2d").drawImage(im,0,0,c.width,c.height);c.toBlob(bl=>{PAYIMG=new File([bl],"comprobante-pago.jpg",{type:"image/jpeg"});$("pcs").textContent="Captura lista. Al confirmar, elige el chat de Budapest en WhatsApp para enviarla junto al pedido.";gate()},"image/jpeg",.82)};im.src=r.result};r.readAsDataURL(f)};
-function msg(n,p,x,nt){const d=$("dl").value,py=$("py").value;let t="*"+CFG.t1+"* · Pedido\n\n";
+function msg(n,p,x,nt){const d=$("dl").value,py=$("py").value;let t="*"+CFG.t1+"* · Pedido\n"+($("sd").value?"Sede: "+$("sd").value+"\n":"")+"\n";
 Object.values(cart).forEach((l,i)=>{t+=(i+1)+". "+l.q+"× "+l.n+(l.l?" ("+l.l+")":"")+": "+money(l.p*l.q)+"\n"+(l.x?"    "+l.x+"\n":"")});
 t+="\n*Total: "+money(total())+"*"+(rate.usd>0?" ("+bs(total())+")":"")+"\n"+(d=="mesa"?"Mesa: ":d=="retiro"?"Retira: ":"Entrega: ")+x+"\nPago: "+py+(py!="Efectivo USD"?(PAYIMG?" · comprobante adjunto":" · comprobante pendiente"):"")+"\nCliente: "+n+" · "+p+"\n";
 if(nt)t+="Notas: "+nt+"\n";return t+"\n"+CFG.f1}
 $("send").onclick=()=>{const n=$("nm").value.trim(),p=$("ph").value.trim(),x=$("ex").value.trim();
 if(!count()){$("er").textContent="Agrega al menos un producto.";return}
+if(!$("sd").value){$("er").textContent="Selecciona la sede de Budapest donde estás.";$("sd").scrollIntoView({behavior:"smooth",block:"center"});return}
 if(n.length<3||p.replace(/\D/g,"").length<10||!x){$("er").textContent="Completa tu nombre, un teléfono válido y los datos de entrega.";return}
 if($("py").value!="Efectivo USD"&&!PAYIMG){$("er").textContent="Haz el pago y adjunta la captura para confirmar el pedido.";const f=$("pcap");if(f)f.scrollIntoView({behavior:"smooth",block:"center"});return}
 $("er").textContent="";{const sb=$("send");sb.textContent="ABRIENDO WHATSAPP…";sb.classList.add("busy");setTimeout(()=>{sb.classList.remove("busy");gate()},2500)}const t=msg(n,p,x,$("nt").value.trim()),u="https://wa.me/"+CFG.wa.replace(/\D/g,"")+"?text="+encodeURIComponent(t);
@@ -1648,6 +1650,7 @@ const gt=gate;gate=function(){gt();const b=$("send");if(!b.classList.contains("l
 $("cs").addEventListener("click",e=>{if(!e.target.closest("#send")||BYP)return;e.stopPropagation();e.preventDefault();
  const n=$("nm").value.trim(),p=$("ph").value.trim(),x=$("ex").value.trim(),er=t=>{$("er").textContent=t};
  if(!count()){er("Agrega al menos un producto.");return}
+ if(!$("sd").value){er("Selecciona la sede de Budapest donde estás.");$("sd").scrollIntoView({behavior:"smooth",block:"center"});return}
  if(n.length<3||p.replace(/\D/g,"").length<10||!x){er("Completa tu nombre, un teléfono válido y los datos de entrega.");return}
  if($("py").value!="Efectivo USD"&&!PAYIMG){er("Haz el pago y adjunta la captura para confirmar el pedido.");const f=$("pcap");if(f)f.scrollIntoView({behavior:"smooth",block:"center"});return}
  const offs=Object.values(cart).filter(l=>l.pid&&OFF[l.pid]).map(l=>l.n);if(offs.length){er("Ya no hay: "+[...new Set(offs)].join(", ")+". Quítalo del pedido para continuar.");return}
@@ -1655,7 +1658,7 @@ $("cs").addEventListener("click",e=>{if(!e.target.closest("#send")||BYP)return;e
 function summary(n,p,x){const d=$("dl").value,py=$("py").value,lab=d=="mesa"?"Mesa":d=="retiro"?"Retira":"Entrega";
  const items=Object.values(cart).map(l=>`<div class="rs-l"><b>${l.q}×</b><span>${esc(l.n)}${l.l?" ("+esc(l.l)+")":""}${l.x?`<small>${esc(l.x)}</small>`:""}${l.note?`<small class="lnote">✎ ${esc(l.note)}</small>`:""}</span><em>${money(l.p*l.q)}</em></div>`).join("");
  const pay=py+(py!="Efectivo USD"?(PAYIMG?" · comprobante adjunto":" · comprobante pendiente"):"");
- $("rsp").innerHTML=`<h2>Resumen de tu pedido</h2><p class="note">Revisa que todo esté bien antes de enviar.</p><div class="rs-list">${items}</div><div class="rs-tot"><div><span>Total</span><b>${money(total())}</b></div>${rate.usd>0?`<div><span></span><b class="rs-bs">${bs(total())}</b></div>`:""}</div><div class="rs-info"><div><span>${lab}</span><b>${esc(x)}</b></div><div><span>Nombre</span><b>${esc(n)}</b></div><div><span>Teléfono</span><b>${esc(p)}</b></div><div><span>Pago</span><b>${esc(pay)}</b></div></div><button class="cta c" id="rsok">CONFIRMAR Y ENVIAR POR WHATSAPP</button><button class="link" id="rsback">Volver y editar</button>`;
+ $("rsp").innerHTML=`<h2>Resumen de tu pedido</h2><p class="note">Revisa que todo esté bien antes de enviar.</p><div class="rs-list">${items}</div><div class="rs-tot"><div><span>Total</span><b>${money(total())}</b></div>${rate.usd>0?`<div><span></span><b class="rs-bs">${bs(total())}</b></div>`:""}</div><div class="rs-info"><div><span>Sede</span><b>${esc($("sd").value)}</b></div><div><span>${lab}</span><b>${esc(x)}</b></div><div><span>Nombre</span><b>${esc(n)}</b></div><div><span>Teléfono</span><b>${esc(p)}</b></div><div><span>Pago</span><b>${esc(pay)}</b></div></div><button class="cta c" id="rsok">CONFIRMAR Y ENVIAR POR WHATSAPP</button><button class="link" id="rsback">Volver y editar</button>`;
  $("rs").classList.add("on")}
 function sent(){vib([20,70,30]);snd("add");const dots=Array.from({length:12},(_,i)=>`<i style="--a:${i*30}deg;--d:${44+(i%3)*10}px"></i>`).join("");
  $("rsp").innerHTML=`<div class="ok"><div class="ok-st">${dots}<svg class="ok-ring" viewBox="0 0 120 120"><circle cx="60" cy="60" r="55"/></svg><div class="ok-ic"><img src="${BM}" alt=""></div><div class="ok-bd"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9"/></svg></div></div><h2>¡Gracias por tu pedido!</h2><p class="ok-s">¡Felicidad en camino!</p><p class="note">Se abrió WhatsApp con tu pedido. Asegúrate de enviar el mensaje: queda confirmado cuando el local responda.</p><button class="cta c" id="rswa">Abrir WhatsApp otra vez</button><button class="link" id="rsnew">Nuevo pedido</button></div>`}
@@ -1668,7 +1671,7 @@ $("rsp").onclick=e=>{const b=e.target.closest("button");if(!b)return;
    navigator.share({files:[PAYIMG],text:t}).catch(()=>{})}else w.click();return}
  if(b.id=="rsnew"){$("rs").classList.remove("on");$("vc").click()}};
 /* ---- las notas viajan en el mensaje de WhatsApp ---- */
-msg=function(n,p,x,nt){const d=$("dl").value,py=$("py").value;let t="*"+CFG.t1+"* · Pedido\n\n";
+msg=function(n,p,x,nt){const d=$("dl").value,py=$("py").value;let t="*"+CFG.t1+"* · Pedido\n"+($("sd").value?"Sede: "+$("sd").value+"\n":"")+"\n";
  Object.values(cart).forEach((l,i)=>{t+=(i+1)+". "+l.q+"× "+l.n+(l.l?" ("+l.l+")":"")+": "+money(l.p*l.q)+"\n"+(l.x?"    "+l.x+"\n":"")+(l.note?"    ✎ Nota: "+l.note+"\n":"")});
  t+="\n*Total: "+money(total())+"*"+(rate.usd>0?" ("+bs(total())+")":"")+"\n"+(d=="mesa"?"Mesa: ":d=="retiro"?"Retira: ":"Entrega: ")+x+"\nPago: "+py+(py!="Efectivo USD"?(PAYIMG?" · comprobante adjunto":" · comprobante pendiente"):"")+"\nCliente: "+n+" · "+p+"\n";
  if(nt)t+="Notas: "+nt+"\n";return t+"\n"+CFG.f1};
