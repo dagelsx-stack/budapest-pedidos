@@ -1,0 +1,12 @@
+Reemplaza en manifest.webmanifest (conserva tus otros campos: name, start_url, etc.):
+
+  "background_color": "#0b1257",
+  "theme_color": "#0b1257",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+
+Sube los 3 PNG junto al index.html. Luego desinstala y vuelve a instalar la app en el teléfono
+(Android guarda en caché el icono y el color del splash al instalar).
